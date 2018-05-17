@@ -39,7 +39,7 @@ initial methods of creating/running 'Stream's.
 
 -}
 
-streamToList :: Stream a r -> [a]
+streamToList :: Stream a r -> ([a], r)
 streamToList = error "streamToList"
 
 listToStream :: [a] -> Stream a ()
