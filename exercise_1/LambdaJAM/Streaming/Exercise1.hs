@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, DeriveFoldable, DeriveTraversable, RankNTypes #-}
 
 {- |
    Module      : LambdaJAM.Streaming.Exercise1
@@ -15,6 +15,11 @@ module LambdaJAM.Streaming.Exercise1 where
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import qualified Data.Foldable             as F
+
+-- For Task 3
+import           Data.Conduit      (ConduitM, await, runConduit, transPipe,
+                                    (.|))
+import qualified Data.Conduit.List as CL
 
 --------------------------------------------------------------------------------
 
@@ -217,13 +222,19 @@ data FStream f m r = FStep (f (FStream f m r))
 
 -- | A left-strict pair; the base functor for streams of individual elements.
 data Of a b = !a :> b
-    deriving (Data, Eq, Foldable, Ord,
+    deriving (Eq, Foldable, Ord,
               Read, Show, Traversable)
 
 infixr 5 :>
 
 instance Functor (Of a) where
   fmap f (a :> x) = a :> f x
+
+fYield :: a -> FStream (Of a) m ()
+fYield a = FStep (a :> FReturn ())
+
+fCons :: a -> FStream (Of a) m r -> FStream (Of a) m r
+fCons a str = FStep (a :> str)
 
 {-
 
@@ -252,6 +263,70 @@ After that, implement a @chunksOf@ function.
 Think about the actual minimum type required for both @splitAt@ and
 @chunksOf@.
 
+Test it: can you take a list, convert it to a stream, chunk it, then
+convert each sub-stream into a list and print it?  The following
+function may be useful:
+
+-}
+
+-- Compared to @mapM@, this transforms the functor rather than any
+-- values stored within that functor (though the transformation
+-- function may modify the values).
+mapsM :: (Monad m, Functor f) => (forall x. f x -> m (g x))
+         -> FStream f m r -> FStream g m r
+mapsM phi = go
+  where
+    go str = case str of
+               FStep f   -> FEffect (fmap FStep (phi (fmap go f)))
+               FEffect m -> FEffect (fmap go m)
+               FReturn r -> FReturn r
+
+-- A traditional @mapM@-style function implemented using 'mapsM'.
+fMapM :: (Monad m) => (a -> m b) -> FStream (Of a) m r -> FStream (Of b) m r
+fMapM f = mapsM (\(a :> x) -> (:> x) <$> f a)
+
+--------------------------------------------------------------------------------
+
+{-
+
+Motivating discussion:
+
+(If you don't have experience with more "traditional" data streaming
+libraries like /pipes/ or /conduit/, you may wish to skip this
+section.  However, it will give you an idea of alternate ways of
+approaching this problem.)
+
+As you've hopefully seen (but will be explored in another exercise in
+more depth), the @Stream@ type is (if you squint hard enough) kind of
+like a traditional list interspersed with Monadic actions (which are
+typically to obtain the next value).
+
+Just about every other library that aims to solve the data streaming
+problem in Haskell tends to do it using more of an automata/state
+machine approach where they accept both inputs and outputs (and in the
+case of pipes also allows for sending data back downstream!).  This
+means some fundamental differences in how you approach and use these:
+
+* In essence, a pipe or conduit is a /function/ that transforms inputs
+  to outputs; with Streams we tend to denote this using an actual
+  function.
+
+* As such, pipes and conduits have their own set of functions and
+  operators for composing them (@>->@ and @.|@ respectively for the
+  simple cases).  With Streams, we use standard function composition.
+
+* Furthermore, you typically have a need for some kind of @runPipe@ or
+  @runConduit@ function to actually feed in inputs, etc.  Whereas with
+  a Stream you'll use a function to create a Stream, then at the end
+  use another (e.g. @mapM_@) to process one.
+
+* At least in my experience, the downstream capabilities of pipes
+  tends not to be very useful (typically setting @a'@ and @b'@ to
+  @()@).
+
+* In many ways, a Stream is more like a @Producer@ or @Source@ in
+  pipes and conduit.
+
 -}
 
 --------------------------------------------------------------------------------
@@ -260,10 +335,32 @@ Think about the actual minimum type required for both @splitAt@ and
 
 Task 3:
 
+Implement the following FStream <-> Conduit functions to get an idea
+how they compare to each other.
+
+These are all taken from streaming-conduit:
+https://hackage.haskell.org/package/streaming-conduit (If you can
+think of better definitions, please provide a pull request!)
+
 -}
 
---------------------------------------------------------------------------------
+-- | Convert a Stream to a Producer-style 'ConduitM'.
+--
+--   Hint: try using 'CL.unfoldEitherM'.
+fromFStream :: (Monad m) => FStream (Of o) m r -> ConduitM i o m r
+fromFStream = error "fromFStream"
 
-{-
+-- toFStream is a little more involved, so will provide it for you.
+-- Uncomment the definition when you've defined instances for FStream.
 
--}
+-- | Convert a Producer-style Conduit to a 'FStream'.
+toFStream :: (Monad m) => ConduitM () o m () -> FStream (Of o) m ()
+toFStream = error "toFStream"
+-- toFStream cnd = runConduit (transPipe lift cnd .| CL.mapM_ fYield)
+
+asStream :: (Monad m) => ConduitM i o m () -> FStream (Of i) m () -> FStream (Of o) m ()
+asStream = error "asStream"
+
+-- This one is very manual...
+asConduit :: (Monad m) => (FStream (Of i) m () -> FStream (Of o) m r) -> ConduitM i o m r
+asConduit = error "asConduit"
