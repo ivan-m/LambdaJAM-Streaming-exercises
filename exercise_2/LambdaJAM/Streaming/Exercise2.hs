@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 {- |
-   Module      : LambdaJAM.Streaming.Exercise1
+   Module      : LambdaJAM.Streaming.Exercise2
    Description : Exercise 2
    Copyright   : (c) Ivan Lazar Miljenovic
    License     : MIT
