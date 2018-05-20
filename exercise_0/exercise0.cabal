@@ -10,5 +10,5 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     LambdaJAM.Streaming.Exercise0
-  build-depends:       base >=4.10 && <4.11
+  build-depends:       base >=4.8 && <4.12
   default-language:    Haskell2010
