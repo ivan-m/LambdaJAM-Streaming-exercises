@@ -343,6 +343,9 @@ These are all taken from streaming-conduit:
 https://hackage.haskell.org/package/streaming-conduit (If you can
 think of better definitions, please provide a pull request!)
 
+Hint: see what I've imported for you to use.  You shouldn't need
+anything else.
+
 -}
 
 -- | Convert a Stream to a Producer-style 'ConduitM'.

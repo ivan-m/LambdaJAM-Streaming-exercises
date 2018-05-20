@@ -30,6 +30,4 @@ Tasks
 2. Port the instances functions from `IStream` to `FStream`; implement
    `chunksOf`.
 
-3.
-
-4.
+3. Implement `FStream` <-> `Conduit` functions.
