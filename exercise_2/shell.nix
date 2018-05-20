@@ -4,12 +4,12 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, base, stdenv, streaming_0_2_1_0 }:
+  f = { mkDerivation, base, stdenv, streaming_0_2_1_0, transformers }:
       mkDerivation {
         pname = "exercise2";
         version = "0.1.0.0";
         src = ./.;
-        libraryHaskellDepends = [ base streaming_0_2_1_0 ];
+        libraryHaskellDepends = [ base streaming_0_2_1_0 transformers ];
         license = stdenv.lib.licenses.mit;
       };
 
