@@ -212,9 +212,9 @@ task3Example = processInnerStream
 
 What do you expect the output of running this to be?
 
-Run it.  Are you surprised (actually, I was slightly surprised;
+Run it.  Are you surprised? (Actually, I was slightly surprised;
 admittedly, I tend not to use 'S.copy' much, or any of these types of
-nested Streams where I print them both).
+nested Streams where I print them both.)
 
 Can you understand why this occurs?
 
