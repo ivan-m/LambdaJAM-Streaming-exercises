@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns, DeriveFoldable, DeriveTraversable, RankNTypes #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 
 {- |
    Module      : LambdaJAM.Streaming.Exercise1
