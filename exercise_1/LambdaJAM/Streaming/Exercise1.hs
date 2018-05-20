@@ -3,7 +3,7 @@
 
 {- |
    Module      : LambdaJAM.Streaming.Exercise1
-   Description : Exercise 0
+   Description : Exercise 1
    Copyright   : (c) Ivan Lazar Miljenovic
    License     : MIT
    Maintainer  : Ivan.Miljenovic@gmail.com
