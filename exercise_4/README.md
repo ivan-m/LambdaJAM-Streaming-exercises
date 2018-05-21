@@ -34,3 +34,8 @@ time of writing) libraries.
 
 Tasks
 -----
+
+1. Implement `takeNLines`.
+
+2. Port `takeNLines` to using streaming `ByteString`s, thus
+   implementing `takeNLinesBS`.
