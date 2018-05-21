@@ -1,0 +1,12 @@
+resolver: lts-11.10
+packages:
+- exercise_0
+- exercise_1
+- exercise_2
+- exercise_3
+- exercise_4
+- exercise_5
+
+extra-deps:
+- streaming-cassava-0.1.0.1
+- streaming-with-0.2.1.1
