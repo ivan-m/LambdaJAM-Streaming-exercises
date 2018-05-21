@@ -112,6 +112,11 @@ you understand why?
 
 -}
 
+task1 :: IO ()
+task1 = do
+  gt <- S.print . S.span (<4) . S.each $ [(1::Int)..10]
+  S.print gt
+
 --------------------------------------------------------------------------------
 
 {-
@@ -152,6 +157,18 @@ through there to find it.
 
 task2Source :: (Monad m) => Stream (Of Int) m ()
 task2Source = S.each [1,2,1,3,2,1,4,3,2,1]
+
+task2a :: IO ()
+task2a = S.print
+         . S.mapsM S.toList
+         . S.groupBy (<)
+         $ task2Source
+
+task2b :: Bool
+task2b = task2Source == S.concats grouped
+  where
+    grouped :: Stream (Stream (Of Int) Identity) Identity ()
+    grouped = S.groupBy (<) task2Source
 
 {-
 
