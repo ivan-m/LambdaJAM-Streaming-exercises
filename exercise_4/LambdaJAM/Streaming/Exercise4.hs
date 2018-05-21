@@ -94,3 +94,80 @@ many consider treating the underlying @Word8@ byte values in
 
 takeNLinesBS :: Int -> IO ()
 takeNLinesBS = error "takeNLinesBS"
+
+--------------------------------------------------------------------------------
+
+{-
+
+Motivating discussion:
+
+One of the biggest issues mentioned with lazy I/O is how to ensure
+that file handles are closed after they are no longer used, etc.  The
+same still applies with stream processing libraries, and a few
+solutions have come up for this.
+
+Probably the best known is the
+[ResourceT](http://hackage.haskell.org/package/resourcet) library,
+primarily used with Conduit.  This provides a monad transformer that
+you can use to register resources that need to be released when no
+longer needed.  Pipes has the
+[pipes-safe](http://hackage.haskell.org/package/pipes-safe) library
+that aims to provide similar functionality albeit more specialised.
+
+The streaming library used to also use @ResourceT@ but this was
+removed with the 0.2.0.0 release.  Why?  Turns out that there were
+fundamental issues with how ResourceT interacted with Streams:
+
+* streaming-bytestring kept trying to read from closed handles:
+  https://github.com/michaelt/streaming-bytestring/issues/17 (Note:
+  this repository is no longer used, hence why the issue has not been
+  directly addressed)
+
+* Due to lack of prompt finalization, usage wouldn't actually always
+  work:
+
+    - https://github.com/haskell-streaming/streaming/issues/36
+    - https://github.com/haskell-streaming/streaming/issues/13
+    - https://github.com/michaelt/streaming/issues/23
+
+As such, the current recommended solution for resource management with
+Streams is the @streaming-with@ library.  See its README for more
+justification/discussions about how it works and why.
+
+(Please note that this has not fully been adopted yet:
+@streaming-postgresql-simple@ for example has not yet been ported,
+though there is a pull request to do so.)
+
+It's interesting to note though that as of version 1.3.0, Conduit has
+removed much (all?) of its support for finalizers:
+https://www.reddit.com/r/haskell/comments/7nuyk8/drop_conduits_finalizers/
+(Reddit link used to see the discussion as well).
+
+-}
+
+--------------------------------------------------------------------------------
+
+{-
+
+Task 3:
+
+The @streaming-with@ library uses the /bracket pattern/ to handle
+resource management.
+
+Use it to implement the following function, then test it out (for
+example, if you are using @cabal repl@ or @stack ghci@ then you should
+have at the very least @LICENSE@ and @README.md@ files in the same
+directory as the REPL; check this by running @:! ls@).
+
+-}
+
+-- | Given @mergeTwoFilesTo in1 in2 out@, then the contents of @out@
+--   afterwards will be composed of the contents of @in1@ followed by
+--   the contents of @in2@.
+mergeTwoFilesTo :: FilePath -> FilePath -> FilePath -> IO ()
+mergeTwoFilesTo = error "mergeTwoFilesTo"
+
+-- | Run @:! ls@ in your ghci session to ensure the required files are
+--   available.
+readmeAndLicense :: IO ()
+readmeAndLicense = mergeTwoFilesTo "README.md" "LICENSE" "exercise4.md"

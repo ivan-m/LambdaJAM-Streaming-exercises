@@ -39,3 +39,5 @@ Tasks
 
 2. Port `takeNLines` to using streaming `ByteString`s, thus
    implementing `takeNLinesBS`.
+
+3. Implement `mergeTwoFilesTo`.
