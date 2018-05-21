@@ -35,7 +35,7 @@ You should /not/ perform any explicit looping.
 
 Try it out!
 
-(Hint: 'S.stdinLine'.)
+(Hint: 'S.stdinLn'.)
 
 -}
 
