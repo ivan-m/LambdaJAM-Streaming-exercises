@@ -85,7 +85,7 @@ You may wish to re-implement 'streamToList' to use this function (and
 possibly make 'listToStream' take a 'Foldable').
 
 Try using this function to implement Stream analogues of functions
-like 'map', 'length', 'mconcat', etc.
+like 'length'.
 
 -}
 
@@ -95,9 +95,9 @@ like 'map', 'length', 'mconcat', etc.
 
 Task 4:
 
-We still have that monadic parameter, so let's allow for it.  Try
-defining Stream analogues of 'mapM' and 'mapM_' (you may wish to
-define a monadic fold function as well).
+We typically want to transform our streamed values.  Try defining
+Stream analogues of 'map', 'mapM' and 'mapM_' (you may wish to define
+a monadic fold function as well).
 
 Use these to do the equivalent of:
 
