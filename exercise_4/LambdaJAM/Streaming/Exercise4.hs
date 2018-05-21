@@ -88,6 +88,8 @@ Please note that you should /never/ actually do something like this:
 many consider treating the underlying @Word8@ byte values in
 @ByteStrings@ (of any flavour) as 'Char' values is a huge mistake.
 
+(Unfortunately, at this time there is no Stream equivalent of Text.)
+
 -}
 
 takeNLinesBS :: Int -> IO ()
