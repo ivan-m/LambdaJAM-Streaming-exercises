@@ -18,6 +18,7 @@ import           Control.Monad.Trans.Class
 import qualified Data.Foldable             as F
 
 -- For Task 3
+import           Control.Monad     (join)
 import           Data.Conduit      (ConduitM, await, runConduit, transPipe,
                                     (.|))
 import qualified Data.Conduit.List as CL
