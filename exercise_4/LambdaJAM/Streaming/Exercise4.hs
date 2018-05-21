@@ -42,7 +42,9 @@ Try it out!
 -- | Read the number of specified lines from standard input and print
 --   them back out.
 takeNLines :: Int -> IO ()
-takeNLines = error "takeNLines"
+takeNLines n = S.stdoutLn
+               . S.take n
+               $ S.stdinLn
 
 --------------------------------------------------------------------------------
 
@@ -93,7 +95,10 @@ many consider treating the underlying @Word8@ byte values in
 -}
 
 takeNLinesBS :: Int -> IO ()
-takeNLinesBS = error "takeNLinesBS"
+takeNLinesBS n = S.mapsM_ SB8.putStr
+                 . S.takes n
+                 . SB8.lines
+                 $ SB8.getContents
 
 {-
 
@@ -173,7 +178,11 @@ directory as the REPL; check this by running @:! ls@).
 --   afterwards will be composed of the contents of @in1@ followed by
 --   the contents of @in2@.
 mergeTwoFilesTo :: FilePath -> FilePath -> FilePath -> IO ()
-mergeTwoFilesTo = error "mergeTwoFilesTo"
+mergeTwoFilesTo in1 in2 out =
+  W.withBinaryFileContents in1 $ \b1 ->
+    W.withBinaryFileContents in2 $ \b2 -> do
+      W.writeBinaryFile out b1
+      W.appendBinaryFile out b2
 
 -- | Run @:! ls@ in your ghci session to ensure the required files are
 --   available.
