@@ -21,11 +21,6 @@ As before:
 For CSV parsing, see [`streaming-cassava`] (version 0.1.0.1 at time of
 writing).
 
-, the [`Streaming`] and [`Streaming.Prelude`] modules will be
-of use.  In addition, we will be using the [`streaming-with`] and
-[`streaming-bytestring`] (versions 0.2.1.1 and 0.1.6 respectively at
-time of writing) libraries.
-
 [`Streaming`]: https://hackage.haskell.org/package/streaming-0.2.1.0/docs/Streaming.html
 [`Streaming.Prelude`]: https://hackage.haskell.org/package/streaming-0.2.1.0/docs/Streaming-Prelude.html
 [`streaming-with`]: http://hackage.haskell.org/package/streaming-with-0.2.1.1
@@ -50,3 +45,5 @@ Your final exam is to:
 
 4. Can you do anything else with the data? Print number of supported
    paradigms for each language?  Sort it somehow?
+
+(Note: these extensions may require some more manual fiddling.)
