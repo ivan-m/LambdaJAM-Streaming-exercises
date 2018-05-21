@@ -134,7 +134,7 @@ Other functions also use this when they need to provide a mechanism
 for processing breaking a single Stream into multiple sub-Streams.
 
 To practice with this usage of nested 'Stream's, take the provided
-list and break it into sub-streams where no element is greater than
+list and break it into sub-streams where each element is greater than
 the first element.  Once you've done so:
 
 a) Convert each sub-stream to a list and print all the lists.
