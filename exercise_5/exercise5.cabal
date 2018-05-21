@@ -10,10 +10,11 @@ cabal-version:       >=1.10
 library
   exposed-modules:     LambdaJAM.Streaming.Exercise5
   build-depends:       base >=4.8 && <5
+                     , bytestring
                      , cassava == 0.5.*
                      , streaming == 0.2.*
                      , streaming-bytestring == 0.1.*
                      , streaming-cassava == 0.1.*
-                     , streaming-with == 0.2.*
+                     , streaming-with >= 0.2.1.0 && < 0.3
                      , transformers
   default-language:    Haskell2010

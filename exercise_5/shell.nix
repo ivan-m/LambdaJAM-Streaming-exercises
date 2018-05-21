@@ -4,7 +4,7 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, base, cassava, stdenv, streaming_0_2_1_0
+  f = { mkDerivation, base, bytestring, cassava, stdenv, streaming_0_2_1_0
       , streaming-bytestring, streaming-cassava, streaming-with
       , transformers
       }:
@@ -13,8 +13,8 @@ let
         version = "0.1.0.0";
         src = ./.;
         libraryHaskellDepends = [
-          base cassava streaming_0_2_1_0 streaming-bytestring streaming-cassava
-          streaming-with transformers
+          base bytestring cassava streaming_0_2_1_0 streaming-bytestring
+          streaming-cassava streaming-with transformers
         ];
         license = stdenv.lib.licenses.mit;
       };
