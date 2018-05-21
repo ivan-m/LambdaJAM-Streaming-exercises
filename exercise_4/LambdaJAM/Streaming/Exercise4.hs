@@ -95,6 +95,14 @@ many consider treating the underlying @Word8@ byte values in
 takeNLinesBS :: Int -> IO ()
 takeNLinesBS = error "takeNLinesBS"
 
+{-
+
+You may experience some difference in behaviour when testing this out
+in GHCi; this is due to the different buffering modes for textual and
+binary data.
+
+-}
+
 --------------------------------------------------------------------------------
 
 {-
