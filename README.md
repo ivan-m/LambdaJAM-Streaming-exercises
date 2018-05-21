@@ -6,6 +6,8 @@ Jam](http://lambdajam.yowconference.com.au/proposal/?id=6197) at the
 [2018 YOW! Lambda Jam](https://confengine.com/yow-lambda-jam-2018)
 conference.
 
+Sample solutions can be found in the `solutions` branch of this repository.
+
 Understanding the exercises
 ---------------------------
 
