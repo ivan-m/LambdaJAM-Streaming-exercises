@@ -74,9 +74,6 @@ You have the option of three build tool options:
 
     ```bash
     ivan LambdaJAM-Streaming-exercises $cd exercise_0
-    ivan exercise_0 $nix-shell --command="cabal configure"
-    error: unrecognised flag '--command=cabal configure'
-    Try 'nix-shell --help' for more information.
     ivan exercise_0 $nix-shell --command "cabal configure"
     Resolving dependencies...
     Configuring exercise0-0.1.0.0...
