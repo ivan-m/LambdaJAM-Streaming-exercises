@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor #-}
+
 {- |
    Module      : LambdaJAM.Streaming.Exercise0
    Description : Exercise 0
@@ -11,6 +12,9 @@
 
  -}
 module LambdaJAM.Streaming.Exercise0 where
+
+import           Data.Bifunctor (first)
+import qualified Data.Foldable  as F
 
 --------------------------------------------------------------------------------
 
@@ -39,11 +43,17 @@ initial methods of creating/running 'Stream's.
 
 -}
 
-streamToList :: Stream a r -> ([a], r)
-streamToList = error "streamToList"
+-- Renamed so there won't be clashes below.
 
-listToStream :: [a] -> Stream a ()
-listToStream = error "listToStream"
+streamToList1 :: Stream a r -> ([a], r)
+streamToList1 = go
+  where
+    go (Step a str) = first (a:) (go str)
+    go (Return r)   = ([], r)
+
+
+listToStream1 :: [a] -> Stream a ()
+listToStream1 = foldr Step (Return ())
 
 --------------------------------------------------------------------------------
 
@@ -67,6 +77,38 @@ instances for 'Stream'.
 
 -}
 
+-- Using a different name to make the progression more obvious.
+
+data MStream a m r = MStep a (MStream a m r)
+                   | MEffect (m (MStream a m r))
+                   | MReturn r
+  deriving (Functor)
+
+instance (Monad m) => Applicative (MStream a m) where
+  pure = MReturn
+
+  streamf <*> streamx = do
+    f <- streamf
+    x <- streamx
+    return (f x)
+
+instance (Monad m) => Monad (MStream a m) where
+  stream >>= f = go stream
+    where
+      go (MStep a str) = MStep a (go str)
+      go (MEffect m)   = MEffect (fmap go m)
+      go (MReturn r)   = f r
+
+streamToList2 :: (Monad m) => MStream a m r -> m ([a], r)
+streamToList2 = go
+  where
+    go (MStep a str) = first (a:) <$> go str
+    go (MEffect m)   = m >>= go
+    go (MReturn r)   = return ([], r)
+
+listToStream2 :: [a] -> MStream a m ()
+listToStream2 = foldr MStep (MReturn ())
+
 --------------------------------------------------------------------------------
 
 {-
@@ -89,6 +131,24 @@ like 'length'.
 
 -}
 
+foldStream :: (Monad m) => (x -> a -> x) -> x -> (x -> b) -> MStream a m r -> m (b, r)
+foldStream step begin done = go begin
+  where
+    go x str = case str of
+                 MStep a str' -> go (step x a) str'
+                 MEffect m    -> m >>= go x
+                 MReturn r    -> return (done x, r)
+
+-- This uses implicit difference lists.
+streamToList3 :: (Monad m) => MStream a m r -> m ([a], r)
+streamToList3 = foldStream (\diff a ls -> diff (a:ls)) id (\diff -> diff [])
+
+listToStream3 :: (F.Foldable f) => f a -> MStream a m ()
+listToStream3 = F.foldr MStep (MReturn ())
+
+mLength :: (Monad m) => MStream a m r -> m (Int, r)
+mLength = foldStream (\x _ -> x + 1) 0 id
+
 --------------------------------------------------------------------------------
 
 {-
@@ -104,3 +164,27 @@ Use these to do the equivalent of:
 > mapM_ print . map (*2) $ [1..10]
 
 -}
+
+mMap :: (Monad m) => (a -> b) -> MStream a m r -> MStream b m r
+mMap f = go
+  where
+    go (MStep a str) = MStep (f a) (go str)
+    go (MEffect m)   = MEffect (fmap go m)
+    go (MReturn r)   = MReturn r
+
+mMapM :: (Monad m) => (a -> m b) -> MStream a m r -> MStream b m r
+mMapM f = go
+  where
+    go (MStep a str) = MEffect (f a >>= \b -> return (MStep b (go str)))
+    go (MEffect m)   = MEffect (fmap go m)
+    go (MReturn r)   = MReturn r
+
+mMapM_ :: (Monad m) => (a -> m b) -> MStream a m r -> m r
+mMapM_ f = go
+  where
+    go (MStep a str) = f a >> go str
+    go (MEffect m)   = m >>= go
+    go (MReturn r)   = return r
+
+task4 :: IO ()
+task4 = mMapM_ print . mMap (*2) . listToStream3 $ [(1::Int) .. 10]
