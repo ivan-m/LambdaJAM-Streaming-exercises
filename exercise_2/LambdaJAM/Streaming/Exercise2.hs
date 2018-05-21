@@ -32,6 +32,9 @@ import qualified Streaming.Prelude as S
 -- Other imports
 import Control.Monad.IO.Class (MonadIO)
 
+-- Useful for task 2b
+import Data.Functor.Identity (Identity, runIdentity)
+
 --------------------------------------------------------------------------------
 
 {-
