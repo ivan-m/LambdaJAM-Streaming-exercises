@@ -131,6 +131,16 @@ What are the consequences of the type you chose?
 
 -}
 
+iSplitAt :: (Monad m) => Int -> IStream a m r -> IStream a m (IStream a m r)
+iSplitAt = go
+  where
+    go !c str = case str of
+                  IStep step
+                    | c <= 0    -> IReturn str
+                    | otherwise -> IStep (fmap (go (c-1)) step)
+                  IEffect m     -> IEffect (fmap (go c) m)
+                  IReturn _     -> IReturn str
+
 --------------------------------------------------------------------------------
 
 {-
@@ -287,6 +297,91 @@ mapsM phi = go
 fMapM :: (Monad m) => (a -> m b) -> FStream (Of a) m r -> FStream (Of b) m r
 fMapM f = mapsM (\(a :> x) -> (:> x) <$> f a)
 
+instance (Monad m, Functor f) => Functor (FStream f m) where
+  fmap f = go
+    where
+      go stream = case stream of
+                    FStep g   -> FStep (fmap go g)
+                    FEffect m -> FEffect (m >>= return . go)
+                    FReturn r -> FReturn (f r)
+
+instance (Monad m, Functor f) => Applicative (FStream f m) where
+  pure = FReturn
+
+  streamf <*> streamx = do
+    f <- streamf
+    x <- streamx
+    return (f x)
+
+instance (Monad m, Functor f) => Monad (FStream f m) where
+  stream >>= f = go stream
+    where
+      go str = case str of
+                 FStep g   -> FStep (fmap go g)
+                 FEffect m -> FEffect (fmap go m)
+                 FReturn r -> f r
+
+  fail = lift . fail
+
+instance MonadTrans (FStream f) where
+  lift = FEffect . fmap FReturn
+
+instance (MonadIO m, Functor f) => MonadIO (FStream f m) where
+  liftIO = lift . liftIO
+
+fusedFold :: (Monad m) => (x -> a -> x) -> x -> (x -> b) -> FStream (Of a) m r -> m (Of b r)
+fusedFold step begin done str = go str begin
+  where
+    go stream !x = case stream of
+                     FReturn r         -> return (done x :> r)
+                     FEffect m         -> m >>= \str' -> go str' x
+                     FStep (a :> rest) -> go rest $! step x a
+
+fusedToList :: (Monad m) => FStream (Of a) m r -> m (Of [a] r)
+fusedToList = fusedFold (\diff a ls -> diff (a:ls)) id ($[])
+
+listToFused :: (Monad m, F.Foldable f) => f a -> FStream (Of a) m ()
+listToFused = F.foldr (\a p -> FStep (a :> p)) (FReturn ())
+
+fMapM_ :: (Monad m) => (a -> m b) -> FStream (Of a) m r -> m r
+fMapM_ f = go
+  where
+    go stream = case stream of
+                  FStep (a :> str') -> f a >> go str'
+                  FEffect m         -> m >>= go
+                  FReturn r         -> return r
+
+printFStream :: (Show a, MonadIO m) => FStream (Of a) m r -> m r
+printFStream = fMapM_ (liftIO . print)
+
+fSplitAt :: (Monad m, Functor f) => Int -> FStream f m r -> FStream f m (FStream f m r)
+fSplitAt = go
+  where
+    go !c str = case str of
+                  FStep step
+                    | c <= 0    -> FReturn str
+                    | otherwise -> FStep (fmap (go (c-1)) step)
+                  FEffect m     -> FEffect (fmap (go c) m)
+                  FReturn _     -> FReturn str
+
+chunksOf :: (Monad m, Functor f) => Int -> FStream f m r -> FStream (FStream f m) m r
+chunksOf c = go
+  where
+    c1 = c - 1 -- We will have one value already
+    recurseOnRemainder = fmap go
+
+    attachFirstValue = FStep
+
+    go (FStep step) = FStep (attachFirstValue (fmap (recurseOnRemainder . fSplitAt c1) step))
+    go (FEffect m)  = FEffect (fmap go m)
+    go (FReturn r)  = FReturn r
+
+chunkedLists :: (Show a) => Int -> [a] -> IO ()
+chunkedLists c = printFStream
+                 . mapsM fusedToList
+                 . chunksOf c
+                 . listToFused
+
 --------------------------------------------------------------------------------
 
 {-
@@ -353,19 +448,27 @@ anything else.
 --
 --   Hint: try using 'CL.unfoldEitherM'.
 fromFStream :: (Monad m) => FStream (Of o) m r -> ConduitM i o m r
-fromFStream = error "fromFStream"
+fromFStream = CL.unfoldEitherM next
+  where
+    next (FStep (a :> str)) = return (Right (a, str))
+    next (FEffect m)        = m >>= next
+    next (FReturn r)        = return (Left r)
 
 -- toFStream is a little more involved, so will provide it for you.
 -- Uncomment the definition when you've defined instances for FStream.
 
 -- | Convert a Producer-style Conduit to a 'FStream'.
 toFStream :: (Monad m) => ConduitM () o m () -> FStream (Of o) m ()
-toFStream = error "toFStream"
--- toFStream cnd = runConduit (transPipe lift cnd .| CL.mapM_ fYield)
+toFStream cnd = runConduit (transPipe lift cnd .| CL.mapM_ fYield)
 
 asStream :: (Monad m) => ConduitM i o m () -> FStream (Of i) m () -> FStream (Of o) m ()
-asStream = error "asStream"
+asStream cnd str = toFStream (fromFStream str .| cnd)
 
 -- This one is very manual...
 asConduit :: (Monad m) => (FStream (Of i) m () -> FStream (Of o) m r) -> ConduitM i o m r
-asConduit = error "asConduit"
+asConduit f = join . fmap (fromFStream . f) $ go
+  where
+    go = do mo <- await
+            case mo of
+              Nothing -> return (return ())
+              Just o  -> fCons o <$> go
