@@ -44,17 +44,25 @@ back "Strings" if you want to print them nicely.
 
 -- | Make every letter upper-case.
 capitalise :: (Monad m) => Stream (Of Char) m r -> Stream (Of Char) m r
-capitalise = error "capitalise"
+capitalise = S.map toUpper
 
 -- | Split the Stream into Streams of words which were delimited by
 --   whitespace (i.e. no whitespace should be present in any
 --   sub-Stream).
 streamWords :: (Monad m) => Stream (Of Char) m r -> Stream (Stream (Of Char) m) m r
-streamWords = error "streamWords"
+streamWords = go
+  where
+    go str = S.effect $ do
+      nxt <- S.next str
+      return $ case nxt of
+                 Left r -> return r
+                 Right (c,str')
+                   | isSpace c -> go (S.dropWhile isSpace str')
+                   | otherwise -> S.wrap (fmap go (S.yield c >> S.break isSpace str'))
 
 -- | Inverse operation to 'streamWords'.  Joins words with separating spaces.
 streamUnwords :: (Monad m) => Stream (Stream (Of Char) m) m r -> Stream (Of Char) m r
-streamUnwords = error "streamUnwords"
+streamUnwords = S.intercalates (S.yield ' ')
 
 {-
 
@@ -88,7 +96,14 @@ Create a function that capitalises the first character of every word.
 -}
 
 titleCase :: (Monad m) => Stream (Of Char) m r -> Stream (Of Char) m r
-titleCase = error "titleCase"
+titleCase = S.concats . S.maps mkTitle . S.groupBy ((==)`on`isSpace)
+  where
+    mkTitle :: (Monad n) => Stream (Of Char) n r -> Stream (Of Char) n r
+    mkTitle str = S.effect $ do
+      nxt <- S.next str
+      return $ case nxt of
+                 Left r         -> return r
+                 Right (c,str') -> S.cons (toUpper c) str'
 
 --------------------------------------------------------------------------------
 
@@ -117,4 +132,9 @@ Port this to using a Stream instead of a list.
 -}
 
 fibonacciStream :: IO ()
-fibonacciStream = error "fibonacciStream"
+fibonacciStream = S.print
+                  . S.take 10
+                  $ fibs
+  where
+    fibs :: (Monad m) => Stream (Of Int) m r
+    fibs = S.cons 1 . S.cons 1 $ S.zipWith (+) fibs (S.drop 1 fibs)
