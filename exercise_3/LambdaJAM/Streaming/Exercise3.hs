@@ -61,7 +61,7 @@ streamUnwords = error "streamUnwords"
 Hint: you primarily need to use 'S.map', 'S.intercalates', 'S.next',
 'S.wrap', 'S.effect', 'S.break' and 'S.dropWhile'.
 
-The definition of 'streamUnwords' is a bit messy.  Consider the list definition:
+The definition of 'streamWwords' is a bit messy.  Consider the list definition:
 
 1. How do you know if you've reached the end?
 
