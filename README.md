@@ -8,6 +8,21 @@ conference.
 
 Sample solutions can be found in the `solutions` branch of this repository.
 
+Background Information
+----------------------
+
+* [Workshop Slides](https://github.com/ivan-m/LambdaJAM-Streaming#i-streamed-a-stream).
+
+    These do not have much content and serve primarily as an
+    introduction to the exercises.
+
+* [My Streaming talk at
+  FP-Syd](https://github.com/ivan-m/FPSyd-Streaming#fpsyd-streaming).
+
+    This workshop was based upon a talk I gave at FP-Syd on 25
+    October, 2017.  These slides contain more content than the ones
+    above, with examples, etc.
+
 Understanding the exercises
 ---------------------------
 
